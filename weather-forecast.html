@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Weather Forecast</title>
+    <link rel="stylesheet" href="base.css"/>
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css"/>
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script>
+        angular.module('myApp', []).controller('myController', function($scope, $http) {
+            $scope.location = '';
+            $scope.days = 1;
+            $scope.foreCasts = {};
+            $scope.src = 'http://openweathermap.org/img/w/';
+
+            $scope.getWeather = function(event) {
+                // user hit enter
+                if ( event.keyCode === 13 ) {
+                    var url = 'http://api.openweathermap.org/data/2.5/forecast/daily?q=';
+                    $http.get(url + $scope.location + '&cnt=' + $scope.days + '&mode=json').success(function(data) {
+
+                        $scope.foreCasts = data.list;
+
+                        console.log($scope.foreCasts);
+                        console.log($scope.foreCasts[0].temp.eve);
+                        console.log($scope.foreCasts[0].weather[0].main);
+                    });
+                }
+            };
+
+            $scope.convertKtoF = function(k) {
+                return ( 9 / 5 * (k - 273) + 32).toFixed(2);
+            };
+
+            $scope.getDateString = function(dayIndex) {
+                var micro = 24 * 60 * 60 * 1000;
+                var now = +(new Date());
+                now = (micro * dayIndex) + now;
+
+                var date = new Date(now);
+                return (date.toDateString());
+            }
+        });
+    </script>
+</head>
+<body  ng-controller="myController">
+    <div>
+        <h4>Weather Forecast for {{ location }} in {{days}} days</h4>
+        <input type="text" placeholder="City, Country" ng-keydown="getWeather($event)" ng-model="location" />
+        <input type="number" min="1" max="10" ng-model="days" ng-keydown="getWeather($event)">Select number of days</input>
+    </div>
+    <ul class="row">
+        <li class="col-lg-10" ng-repeat="obj in foreCasts">
+            <div class="row results-grid-col">
+                <div class="col-lg-1">
+
+                    <img ng-src="{{src + obj.weather[0].icon + '.png'}}" style="width: 100%" />
+                </div>
+                <div class="col-lg-11">
+                    <ul>
+                        <li>Date: {{ getDateString($index) }}</li>
+                        <li>Weather: {{ obj.weather[0].main }}</li>
+                        <li>Morning: {{ convertKtoF(obj.temp.day) }}</li>
+                        <li>Evening: {{ convertKtoF(obj.temp.eve) }}</li>
+                    </ul>
+                </div>
+            </div>
+        </li>
+    </ul>
+</body>
+</html>
